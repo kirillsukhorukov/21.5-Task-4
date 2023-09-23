@@ -160,6 +160,7 @@ void players_info (std::vector <character> &players)
             << players[i].damage << "\t" << players[i].place.X+1 << "\t" << players[i].place.Y+1 << "\t" 
             << std::boolalpha << players[i].alive << std::endl;
     }
+    std::cout << std::endl;
 }
 
 //Функция сохранения в файл
@@ -186,6 +187,48 @@ void take_damage(int &health, int &armor, const int &damage, bool &alive)
     if (health < 0) alive = false;
 }
 
+//Функция вывода информации о командах
+void print_command_info()
+{
+    std::cout << std::endl;
+    std::cout << "Enter the command:" << std::endl << std::endl;
+    std::cout << "'L' - step left;" << std::endl; 
+    std::cout << "'R' - step right;" << std::endl; 
+    std::cout << "'U' - step up;" << std::endl; 
+    std::cout << "'L' - step down;" << std::endl;
+    std::cout << "'save' - save to file;" << std::endl;
+    std::cout << "'load' - load from file;" << std::endl;
+    std::cout << "'info' - view players information;" << std::endl;
+    std::cout << "'help' - view commands;" << std::endl;
+    std::cout << "'quit' - terminate program execution." << std::endl << std::endl;
+}
+
+void step (std::vector <character> &players, bool &quit)
+{
+    bool error = false;
+    std::string command;
+    do
+    {
+        error = false;
+        std::getline(std::cin,command);
+        if (command == "L") players_init(players);
+        else if (command == "save") save_data(players);
+        else if (command == "load") load_data(players);
+        else if (command == "info") players_info(players);
+        else if (command == "help") print_command_info();
+        else if (command == "quit") 
+        {
+            std::cout << "--- Program completed ---" << std::endl;
+            quit =true;
+        }
+        else 
+        {
+            std::cerr <<"Error! Input 'help' for view commands. Repeat input." << std::endl;
+            error = true;
+        }
+    } while (error);
+}
+
 int main()
 {
     //Задание начального зерна случайных чисел
@@ -194,10 +237,7 @@ int main()
     //Инициализация пустого поля
     field_init();
 
-    //Инициализация игрока
-    character player;
-
-    //Инициализация массива противников
+    //Инициализация массива игроков
     std::vector <character> players(COUNT_PLAYERS);
 
     //Начальный экран
@@ -209,14 +249,14 @@ int main()
     
     //Загрузка данных игроков
     bool error = false;
-    std::string str;
+    std::string command;
     do
     {
         error = false;
-        std::getline(std::cin,str);
-        if (str == "new") players_init(players);
-        else if (str == "load") load_data(players);
-        else if (str == "quit") 
+        std::getline(std::cin,command);
+        if (command == "new") players_init(players);
+        else if (command == "load") load_data(players);
+        else if (command == "quit") 
         {
             std::cout << "--- Program completed ---" << std::endl;
             return 1;
@@ -228,14 +268,20 @@ int main()
         }
     } while (error);
 
-    //Игровой процесс
+    
+    
+    //Вывод игрового поля информации игроков и информации о командах
     field_print();
     players_info(players);
+    print_command_info();
+    
+    //Игровой процесс
+    std::cout << std::endl << "\t\t\t\t\t\t\t\t----- Beginning of the game -----" << std::endl << std::endl;
     bool quit = false;  //Флаг окончания игры
-    /*while (!quit)
+    while (!quit)
     {
-        
-    }*/
+        step(players,quit);
+    }
         
     
 
