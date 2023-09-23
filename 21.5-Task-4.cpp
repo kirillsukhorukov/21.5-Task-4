@@ -62,6 +62,12 @@ void field_print()
     return;
 }
 
+//Функция генерации случайного целого числа
+int random_num(const int &min, const int &max)
+{
+    return (std::rand()%(max-min))+min;
+}
+
 //Функция проверки строки с целым числом
 bool check_int(std::string &num)
 {
@@ -126,6 +132,23 @@ void players_init(character &player, std::vector <character> &enemies)
     }
 }
 
+//Функция вывода информации о игроках
+void players_info (character &player, std::vector <character> &enemies)
+{
+    std::cout << std::endl;
+    std::cout << "NAME\t\tHEALTH\tARMOR\tDAMAGE\tX\tY\tALIVE" << std::endl;
+    std::cout << player.name << "\t\t" << player.health << "\t" << player.armor << "\t" 
+        << player.damage << "\t" << player.place.X << "\t" << player.place.X << "\t" 
+        << std::boolalpha << player.alive << std::endl;
+    
+    for (int i=0; i<COUNT_ENEMY; i++)
+    {
+        std::cout << enemies[i].name << "\t" << enemies[i].health << "\t" << enemies[i].armor << "\t" 
+            << enemies[i].damage << "\t" << enemies[i].place.X << "\t" << enemies[i].place.X << "\t" 
+            << std::boolalpha << enemies[i].alive << std::endl;
+    }
+}
+
 //Функция сохранения в файл
 void save_data (character &player, std::vector <character> &enemies)
 {
@@ -150,12 +173,6 @@ void take_damage(int &health, int &armor, const int &damage, bool &alive)
     if (health < 0) alive = false;
 }
 
-//Функция генерации случайного целого числа
-int random_num(const int &min, const int &max)
-{
-    return (std::rand()%(max-min))+min;
-}
-
 int main()
 {
     //Задание начального зерна случайных чисел
@@ -170,13 +187,14 @@ int main()
     //Инициализация массива противников
     std::vector <character> enemies(COUNT_ENEMY);
 
+    //Начальный экран
     std::cout << "------ SKILLBOX RPG ------" << std::endl << std::endl;
-    std::cout << "Enter the command:" << std::endl;
+    std::cout << "Enter the command:" << std::endl << std::endl;
     std::cout << "'new' - start new game;" << std::endl;
-    std::cout << "'save' - save to file" << std::endl;
     std::cout << "'load' - load from file;" << std::endl;
     std::cout << "'quit' - terminate program execution." << std::endl << std::endl;
     
+    //Загрузка данных игроков
     bool error = false;
     std::string str;
     do
@@ -196,6 +214,8 @@ int main()
             error = true;
         }
     } while (error);
+
+    players_info(player,enemies);
 
     return 1;
 }
