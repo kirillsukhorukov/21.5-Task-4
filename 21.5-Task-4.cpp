@@ -49,8 +49,9 @@ void field_init()
 //Функция прорисовки поля
 void field_print()
 {
-    std::cout << "\t";
+    std::cout << std::endl << "\t\t\t\t\t\t\t\t----- BATTLEFIELD -----" << std::endl << std::endl;
     
+    std::cout << "\t";
     for (int x=0; x<FIELD_SIZE; x++) std::cout << x+1 << "\t"; 
     std::cout << std::endl;
     for (int i=0; i<FIELD_SIZE; i++) 
@@ -107,6 +108,15 @@ int input_int (const std::string &str)
     return num;
 }
 
+//Функция расстановки игроков на поле
+void player_positioning (character &player, std::vector <character> &enemies)
+{
+    field[player.place.X][player.place.Y] = 'P';
+    for (int i=0; i<COUNT_ENEMY; i++)
+    {
+        field[enemies[i].place.X][enemies[i].place.Y] = 'E';
+    }
+}
 //Функция инициализации игроков
 void players_init(character &player, std::vector <character> &enemies)
 {
@@ -130,6 +140,9 @@ void players_init(character &player, std::vector <character> &enemies)
         enemies[i].place.Y = random_num(0, FIELD_SIZE-1);
         enemies[i].team = false;
     }
+
+    //Расстановка игроков на поле
+    player_positioning(player,enemies);
 }
 
 //Функция вывода информации о игроках
@@ -138,13 +151,13 @@ void players_info (character &player, std::vector <character> &enemies)
     std::cout << std::endl;
     std::cout << "NAME\t\tHEALTH\tARMOR\tDAMAGE\tX\tY\tALIVE" << std::endl;
     std::cout << player.name << "\t\t" << player.health << "\t" << player.armor << "\t" 
-        << player.damage << "\t" << player.place.X << "\t" << player.place.X << "\t" 
+        << player.damage << "\t" << player.place.X << "\t" << player.place.Y << "\t" 
         << std::boolalpha << player.alive << std::endl;
     
     for (int i=0; i<COUNT_ENEMY; i++)
     {
         std::cout << enemies[i].name << "\t" << enemies[i].health << "\t" << enemies[i].armor << "\t" 
-            << enemies[i].damage << "\t" << enemies[i].place.X << "\t" << enemies[i].place.X << "\t" 
+            << enemies[i].damage << "\t" << enemies[i].place.X << "\t" << enemies[i].place.Y << "\t" 
             << std::boolalpha << enemies[i].alive << std::endl;
     }
 }
@@ -215,7 +228,16 @@ int main()
         }
     } while (error);
 
+    //Игровой процесс
+    field_print();
     players_info(player,enemies);
+    /*bool quit = false;  //Флаг окончания игры
+    while (!quit)
+    {
+        
+    }*/
+        
+    
 
     return 1;
 }
