@@ -11,7 +11,7 @@ const unsigned int FIELD_SIZE = 20;
 char field[FIELD_SIZE][FIELD_SIZE];
 
 //Игровые параметры
-const unsigned int COUNT_ENEMY = 5;
+const unsigned int COUNT_PLAYERS = 6;
 const unsigned int MIN_HEALTH = 50;
 const unsigned int MAX_HEALTH = 150;
 const unsigned int MIN_ARMOR = 0;
@@ -49,7 +49,7 @@ void field_init()
 //Функция прорисовки поля
 void field_print()
 {
-    std::cout << std::endl << "\t\t\t\t\t\t\t\t----- BATTLEFIELD -----" << std::endl << std::endl;
+    std::cout << std::endl << "\t\t\t\t\t\t\t\t\t\t----- BATTLEFIELD -----" << std::endl << std::endl;
     
     std::cout << "\t";
     for (int x=0; x<FIELD_SIZE; x++) std::cout << x+1 << "\t"; 
@@ -109,67 +109,67 @@ int input_int (const std::string &str)
 }
 
 //Функция расстановки игроков на поле
-void player_positioning (character &player, std::vector <character> &enemies)
+void player_positioning (std::vector <character> &players)
 {
-    field[player.place.X][player.place.Y] = 'P';
-    for (int i=0; i<COUNT_ENEMY; i++)
+    field[players[0].place.Y][players[0].place.X] = 'P';
+    for (int i=1; i<COUNT_PLAYERS; i++)
     {
-        field[enemies[i].place.X][enemies[i].place.Y] = 'E';
+        field[players[i].place.Y][players[i].place.X] = 'E';
     }
 }
 //Функция инициализации игроков
-void players_init(character &player, std::vector <character> &enemies)
+void players_init(std::vector <character> &players)
 {
     //Инициализация игрока
     std::cout << "Enter player name: ";
-    std::getline(std::cin, player.name);
-    player.health = input_int("Enter player's health level: ");
-    player.armor = input_int("Enter player's armor level: ");
-    player.damage = input_int("Enter player's damage level: ");
-    player.place.X = random_num(0, FIELD_SIZE-1);
-    player.place.Y = random_num(0, FIELD_SIZE-1);
+    std::getline(std::cin, players[0].name);
+    players[0].health = input_int("Enter player's health level: ");
+    players[0].armor = input_int("Enter player's armor level: ");
+    players[0].damage = input_int("Enter player's damage level: ");
+    players[0].place.X = random_num(0, FIELD_SIZE-1);
+    players[0].place.Y = random_num(0, FIELD_SIZE-1);
 
     //Инициализация противников
-    for (int i=0; i<COUNT_ENEMY; i++)
+    for (int i=1; i<COUNT_PLAYERS; i++)
     {
-        enemies[i].name = "Enemy #" + std::to_string(i+1);
-        enemies[i].health = random_num(MIN_HEALTH,MAX_HEALTH);
-        enemies[i].armor = random_num(MIN_ARMOR,MAX_ARMOR);
-        enemies[i].damage = random_num(MIN_DAMAGE,MAX_DAMAGE);
-        enemies[i].place.X = random_num(0, FIELD_SIZE-1);
-        enemies[i].place.Y = random_num(0, FIELD_SIZE-1);
-        enemies[i].team = false;
+        players[i].name = "Enemy #" + std::to_string(i+1);
+        players[i].health = random_num(MIN_HEALTH,MAX_HEALTH);
+        players[i].armor = random_num(MIN_ARMOR,MAX_ARMOR);
+        players[i].damage = random_num(MIN_DAMAGE,MAX_DAMAGE);
+        players[i].place.X = random_num(0, FIELD_SIZE-1);
+        players[i].place.Y = random_num(0, FIELD_SIZE-1);
+        players[i].team = false;
     }
 
     //Расстановка игроков на поле
-    player_positioning(player,enemies);
+    player_positioning(players);
 }
 
 //Функция вывода информации о игроках
-void players_info (character &player, std::vector <character> &enemies)
+void players_info (std::vector <character> &players)
 {
     std::cout << std::endl;
     std::cout << "NAME\t\tHEALTH\tARMOR\tDAMAGE\tX\tY\tALIVE" << std::endl;
-    std::cout << player.name << "\t\t" << player.health << "\t" << player.armor << "\t" 
-        << player.damage << "\t" << player.place.X << "\t" << player.place.Y << "\t" 
-        << std::boolalpha << player.alive << std::endl;
+    std::cout << players[0].name << "\t\t" << players[0].health << "\t" << players[0].armor << "\t" 
+        << players[0].damage << "\t" << players[0].place.X+1 << "\t" << players[0].place.Y+1 << "\t" 
+        << std::boolalpha << players[0].alive << std::endl;
     
-    for (int i=0; i<COUNT_ENEMY; i++)
+    for (int i=1; i<COUNT_PLAYERS; i++)
     {
-        std::cout << enemies[i].name << "\t" << enemies[i].health << "\t" << enemies[i].armor << "\t" 
-            << enemies[i].damage << "\t" << enemies[i].place.X << "\t" << enemies[i].place.Y << "\t" 
-            << std::boolalpha << enemies[i].alive << std::endl;
+        std::cout << players[i].name << "\t" << players[i].health << "\t" << players[i].armor << "\t" 
+            << players[i].damage << "\t" << players[i].place.X+1 << "\t" << players[i].place.Y+1 << "\t" 
+            << std::boolalpha << players[i].alive << std::endl;
     }
 }
 
 //Функция сохранения в файл
-void save_data (character &player, std::vector <character> &enemies)
+void save_data (std::vector <character> &players)
 {
 
 }
 
 //Функция загрузки из файла
-void load_data (character &player, std::vector <character> &enemies)
+void load_data (std::vector <character> &players)
 {
 
 }
@@ -198,7 +198,7 @@ int main()
     character player;
 
     //Инициализация массива противников
-    std::vector <character> enemies(COUNT_ENEMY);
+    std::vector <character> players(COUNT_PLAYERS);
 
     //Начальный экран
     std::cout << "------ SKILLBOX RPG ------" << std::endl << std::endl;
@@ -214,8 +214,8 @@ int main()
     {
         error = false;
         std::getline(std::cin,str);
-        if (str == "new") players_init(player,enemies);
-        else if (str == "load") load_data(player,enemies);
+        if (str == "new") players_init(players);
+        else if (str == "load") load_data(players);
         else if (str == "quit") 
         {
             std::cout << "--- Program completed ---" << std::endl;
@@ -230,9 +230,9 @@ int main()
 
     //Игровой процесс
     field_print();
-    players_info(player,enemies);
-    /*bool quit = false;  //Флаг окончания игры
-    while (!quit)
+    players_info(players);
+    bool quit = false;  //Флаг окончания игры
+    /*while (!quit)
     {
         
     }*/
