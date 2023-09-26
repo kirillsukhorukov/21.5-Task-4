@@ -96,13 +96,34 @@ void players_init(std::vector <character> &players)
     //Инициализация противников
     for (int i=1; i<COUNT_PLAYERS; i++)
     {
-        players[i].name = "Enemy #" + std::to_string(i+1);
+        players[i].name = "Enemy #" + std::to_string(i);
         players[i].health = random_num(MIN_HEALTH,MAX_HEALTH);
         players[i].armor = random_num(MIN_ARMOR,MAX_ARMOR);
         players[i].damage = random_num(MIN_DAMAGE,MAX_DAMAGE);
         players[i].place.X = random_num(0, FIELD_SIZE-1);
         players[i].place.Y = random_num(0, FIELD_SIZE-1);
         players[i].team = false;
+    }
+}
+
+//Функция движения игрока
+void movement (character &player, const int &direction)
+{
+    if (direction == 1) 
+    {
+        if (player.place.X-1 >=0) player.place.X--;
+    }
+    else if (direction == 2) 
+    {
+        if (player.place.X+1 <FIELD_SIZE) player.place.X++;
+    }
+    else if (direction == 3) 
+    {
+        if (player.place.Y-1 >=0) player.place.Y--;
+    }
+    else if (direction == 4) 
+    {
+        if (player.place.Y+1 <FIELD_SIZE) player.place.Y++;
     }
 }
 
@@ -138,12 +159,6 @@ void print_field (std::vector <character> &players)
     return;
 }
 
-//Функция шага влево
-void step_left(std::vector <character> &players, const bool &team)
-{
-    
-}
-
 //Функция сохранения в файл
 void save_data (std::vector <character> &players)
 {
@@ -154,18 +169,6 @@ void save_data (std::vector <character> &players)
 void load_data (std::vector <character> &players)
 {
 
-}
-
-//Функция нанесения урона
-void take_damage(int &health, int &armor, const int &damage, bool &alive)
-{
-    armor -= damage;
-    if (armor <0)
-    {
-        health += armor;
-        armor = 0;
-    }
-    if (health < 0) alive = false;
 }
 
 //Функция вывода информации о игроках
@@ -202,9 +205,70 @@ void print_command_info()
     std::cout << "'quit' - terminate program execution." << std::endl << std::endl;
 }
 
+//Функция нанесения урона
+void take_damage(int &health, int &armor, const int &damage, bool &alive)
+{
+    armor -= damage;
+    if (armor <0)
+    {
+        health += armor;
+        armor = 0;
+    }
+    if (health < 0) alive = false;
+}
+
+//Функция проверки поединка
+bool check_fight(std::vector <character> &players, const bool &team)
+{
+    for (int i=1; i<COUNT_PLAYERS; i++)
+    {
+        //Удар наносит игорок
+        if (players[0].place.X==players[i].place.X & players[0].place.Y==players[i].place.Y & team) 
+        {
+            take_damage(players[i].health, players[i].armor, players[0].damage, players[i].alive);
+            return true;
+        }
+        //Удар наносит противник
+        if (players[0].place.X==players[i].place.X & players[0].place.Y==players[i].place.Y & !team) 
+        {
+            take_damage(players[0].health, players[0].armor, players[i].damage, players[0].alive);
+            return true;
+        }
+    }
+    return false;
+}
+
+//Функция проверки победы одной из сторон
+bool victory (std::vector <character> &players)
+{
+    //Поражение игрока
+    if (!players[0].alive) 
+    {
+        std::cout << std::endl << players[0].name << " lost!" << std::endl;
+        players_info(players);
+        return true;
+    }
+
+    //Поражение противников
+    bool enemy_death = players[1].alive;
+    for (int i=2; i<COUNT_PLAYERS; i++) enemy_death += players[i].alive; 
+    if (!enemy_death) 
+    {
+        std::cout << std::endl << players[0].name << " won!" << std::endl;
+        players_info(players);
+        return true;
+    }
+    
+    return false;
+}
+
+//Функция одного цикла в игре
 void move (std::vector <character> &players, bool &quit)
 {
-    //Ход игрока
+    //Переменная направления движения (1 - влево, 2 - вправо, 3 - вверх, 4 - вниз)
+    int direction = 1;
+
+    //Ввод команды игроком
     bool error = false;
     std::string command;
     do
@@ -212,22 +276,10 @@ void move (std::vector <character> &players, bool &quit)
         std::cout << std::endl << "Enter the command:";
         error = false;
         std::getline(std::cin,command);
-        if (command == "L") 
-        {
-            if (players[0].place.X-1 >=0) players[0].place.X--;
-        }
-        else if (command == "R") 
-        {
-            if (players[0].place.X+1 <FIELD_SIZE) players[0].place.X++;
-        }
-        else if (command == "U") 
-        {
-            if (players[0].place.Y-1 >=0) players[0].place.Y--;
-        }
-        else if (command == "D") 
-        {
-            if (players[0].place.Y+1 <FIELD_SIZE) players[0].place.Y++;
-        }
+        if (command == "L") direction = 1;
+        else if (command == "R") direction = 2;
+        else if (command == "U") direction = 3;
+        else if (command == "D") direction = 4;
         else if (command == "save") 
         {
             save_data(players);
@@ -251,7 +303,7 @@ void move (std::vector <character> &players, bool &quit)
         else if (command == "quit") 
         {
             std::cout << "--- Program completed ---" << std::endl;
-            quit =true;
+            quit = true;
             return;
         }
         else 
@@ -260,7 +312,38 @@ void move (std::vector <character> &players, bool &quit)
             error = true;
         }
     } while (error);
+    
+    //Цикл ходов всех участников
+    //Флаг, что бой завершен
+    bool end_fight=false;
+    for (int i=0; i<COUNT_PLAYERS; i++)
+    {
+        //Движение игрока
+        movement(players[i], direction);
+        
+        if (!end_fight)
+        {
+            //Проверка поединка
+            if (check_fight(players, players[i].team))
+            {
+                //Если поединок состоялся, то проверка победы одной из сторон
+                if (victory(players))
+                {
+                    quit = true;
+                    return;
+                }
+                end_fight = true;
+            }
+        }
+        
+        
+        //Генерация направления хода для противников
+        direction = random_num(1,4);
+    }
+    
+    //Отображение игрового поля
     print_field(players);
+    players_info(players);
 }
 
 int main()
@@ -272,7 +355,7 @@ int main()
     std::vector <character> players(COUNT_PLAYERS);
 
     //Начальный экран
-    std::cout << "------ SKILLBOX RPG ------" << std::endl << std::endl;
+    std::cout << "------ SKILLBOX RPG v1.1 ------" << std::endl << std::endl;
     std::cout << "Enter the command:" << std::endl << std::endl;
     std::cout << "'new' - start new game;" << std::endl;
     std::cout << "'load' - load from file;" << std::endl;
