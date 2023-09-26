@@ -5,7 +5,7 @@
 #include <vector>
 #include <cstdlib>
 
-//Объявление глообальных перемненых
+//Объявление глобальных переменных
 //Параметры поля
 const unsigned int FIELD_SIZE = 20;
 char field[FIELD_SIZE][FIELD_SIZE];
@@ -35,33 +35,6 @@ struct character
     bool alive = true; //Флаг живой персонаж или нет
     bool team = true;  //Флаг принадлежности к команде (1 - игрок; 0 - команда противника)
 };
-
-//Функция инициализации поля
-void field_init()
-{
-    for (int i=0; i<FIELD_SIZE; i++) 
-    {
-        for (int j=0; j<FIELD_SIZE; j++) field[i][j] = '.';
-    }
-    return;
-}
-
-//Функция прорисовки поля
-void field_print()
-{
-    std::cout << std::endl << "\t\t\t\t\t\t\t\t\t\t----- BATTLEFIELD -----" << std::endl << std::endl;
-    
-    std::cout << "\t";
-    for (int x=0; x<FIELD_SIZE; x++) std::cout << x+1 << "\t"; 
-    std::cout << std::endl;
-    for (int i=0; i<FIELD_SIZE; i++) 
-    {
-        std::cout << i+1 << "\t";
-        for (int j=0; j<FIELD_SIZE; j++) std::cout << field[i][j] << "\t";
-        std::cout << std::endl;
-    }
-    return;
-}
 
 //Функция генерации случайного целого числа
 int random_num(const int &min, const int &max)
@@ -108,15 +81,6 @@ int input_int (const std::string &str)
     return num;
 }
 
-//Функция расстановки игроков на поле
-void player_positioning (std::vector <character> &players)
-{
-    field[players[0].place.Y][players[0].place.X] = 'P';
-    for (int i=1; i<COUNT_PLAYERS; i++)
-    {
-        field[players[i].place.Y][players[i].place.X] = 'E';
-    }
-}
 //Функция инициализации игроков
 void players_init(std::vector <character> &players)
 {
@@ -140,27 +104,44 @@ void players_init(std::vector <character> &players)
         players[i].place.Y = random_num(0, FIELD_SIZE-1);
         players[i].team = false;
     }
-
-    //Расстановка игроков на поле
-    player_positioning(players);
 }
 
-//Функция вывода информации о игроках
-void players_info (std::vector <character> &players)
+//Функция обновления игрового поля и его вывода на экран
+void print_field (std::vector <character> &players)
 {
-    std::cout << std::endl;
-    std::cout << "NAME\t\tHEALTH\tARMOR\tDAMAGE\tX\tY\tALIVE" << std::endl;
-    std::cout << players[0].name << "\t\t" << players[0].health << "\t" << players[0].armor << "\t" 
-        << players[0].damage << "\t" << players[0].place.X+1 << "\t" << players[0].place.Y+1 << "\t" 
-        << std::boolalpha << players[0].alive << std::endl;
-    
+    //обнулить поле
+    for (int i=0; i<FIELD_SIZE; i++) 
+    {
+        for (int j=0; j<FIELD_SIZE; j++) field[i][j] = '.';
+    }
+
+    //Расстановка игроков
     for (int i=1; i<COUNT_PLAYERS; i++)
     {
-        std::cout << players[i].name << "\t" << players[i].health << "\t" << players[i].armor << "\t" 
-            << players[i].damage << "\t" << players[i].place.X+1 << "\t" << players[i].place.Y+1 << "\t" 
-            << std::boolalpha << players[i].alive << std::endl;
+        if (players[i].alive) field[players[i].place.Y][players[i].place.X] = 'E';
     }
+    if (players[0].alive) field[players[0].place.Y][players[0].place.X] = 'P';
+
+    //Вывод игрового поля
+    std::cout << std::endl << "\t\t\t\t\t\t\t\t\t\t----- BATTLEFIELD -----" << std::endl << std::endl;
+    
+    std::cout << "\t";
+    for (int x=0; x<FIELD_SIZE; x++) std::cout << x+1 << "\t"; 
     std::cout << std::endl;
+    for (int i=0; i<FIELD_SIZE; i++) 
+    {
+        std::cout << i+1 << "\t";
+        for (int j=0; j<FIELD_SIZE; j++) std::cout << field[i][j] << "\t";
+        std::cout << std::endl;
+    }
+
+    return;
+}
+
+//Функция шага влево
+void step_left(std::vector <character> &players, const bool &team)
+{
+    
 }
 
 //Функция сохранения в файл
@@ -187,11 +168,29 @@ void take_damage(int &health, int &armor, const int &damage, bool &alive)
     if (health < 0) alive = false;
 }
 
+//Функция вывода информации о игроках
+void players_info (std::vector <character> &players)
+{
+    std::cout << std::endl;
+    std::cout << "NAME\t\tHEALTH\tARMOR\tDAMAGE\tX\tY\tALIVE" << std::endl;
+    std::cout << players[0].name << "\t\t" << players[0].health << "\t" << players[0].armor << "\t" 
+        << players[0].damage << "\t" << players[0].place.X+1 << "\t" << players[0].place.Y+1 << "\t" 
+        << std::boolalpha << players[0].alive << std::endl;
+    
+    for (int i=1; i<COUNT_PLAYERS; i++)
+    {
+        std::cout << players[i].name << "\t" << players[i].health << "\t" << players[i].armor << "\t" 
+            << players[i].damage << "\t" << players[i].place.X+1 << "\t" << players[i].place.Y+1 << "\t" 
+            << std::boolalpha << players[i].alive << std::endl;
+    }
+    std::cout << std::endl;
+}
+
 //Функция вывода информации о командах
 void print_command_info()
 {
     std::cout << std::endl;
-    std::cout << "Enter the command:" << std::endl << std::endl;
+    std::cout << "Game control:" << std::endl << std::endl;
     std::cout << "'L' - step left;" << std::endl; 
     std::cout << "'R' - step right;" << std::endl; 
     std::cout << "'U' - step up;" << std::endl; 
@@ -203,23 +202,57 @@ void print_command_info()
     std::cout << "'quit' - terminate program execution." << std::endl << std::endl;
 }
 
-void step (std::vector <character> &players, bool &quit)
+void move (std::vector <character> &players, bool &quit)
 {
+    //Ход игрока
     bool error = false;
     std::string command;
     do
     {
+        std::cout << std::endl << "Enter the command:";
         error = false;
         std::getline(std::cin,command);
-        if (command == "L") players_init(players);
-        else if (command == "save") save_data(players);
-        else if (command == "load") load_data(players);
-        else if (command == "info") players_info(players);
-        else if (command == "help") print_command_info();
+        if (command == "L") 
+        {
+            if (players[0].place.X-1 >=0) players[0].place.X--;
+        }
+        else if (command == "R") 
+        {
+            if (players[0].place.X+1 <FIELD_SIZE) players[0].place.X++;
+        }
+        else if (command == "U") 
+        {
+            if (players[0].place.Y-1 >=0) players[0].place.Y--;
+        }
+        else if (command == "D") 
+        {
+            if (players[0].place.Y+1 <FIELD_SIZE) players[0].place.Y++;
+        }
+        else if (command == "save") 
+        {
+            save_data(players);
+            error = true;
+        }
+        else if (command == "load") 
+        {
+            load_data(players);
+            error = true;
+        }
+        else if (command == "info") 
+        {
+            players_info(players);
+            error = true;
+        }
+        else if (command == "help") 
+        {
+            print_command_info();
+            error = true;
+        }
         else if (command == "quit") 
         {
             std::cout << "--- Program completed ---" << std::endl;
             quit =true;
+            return;
         }
         else 
         {
@@ -227,15 +260,13 @@ void step (std::vector <character> &players, bool &quit)
             error = true;
         }
     } while (error);
+    print_field(players);
 }
 
 int main()
 {
     //Задание начального зерна случайных чисел
     std::srand(std::time(nullptr));
-
-    //Инициализация пустого поля
-    field_init();
 
     //Инициализация массива игроков
     std::vector <character> players(COUNT_PLAYERS);
@@ -267,11 +298,9 @@ int main()
             error = true;
         }
     } while (error);
-
     
-    
-    //Вывод игрового поля информации игроков и информации о командах
-    field_print();
+    //Вывод игрового поля информации игроков и информации о командах управления
+    print_field(players);
     players_info(players);
     print_command_info();
     
@@ -280,10 +309,8 @@ int main()
     bool quit = false;  //Флаг окончания игры
     while (!quit)
     {
-        step(players,quit);
+        move(players,quit);
     }
-        
-    
 
     return 1;
 }
