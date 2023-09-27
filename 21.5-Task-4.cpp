@@ -269,7 +269,7 @@ void print_command_info()
     std::cout << "'L' - step left;" << std::endl; 
     std::cout << "'R' - step right;" << std::endl; 
     std::cout << "'U' - step up;" << std::endl; 
-    std::cout << "'L' - step down;" << std::endl;
+    std::cout << "'D' - step down;" << std::endl;
     std::cout << "'save' - save to file;" << std::endl;
     std::cout << "'load' - load from file;" << std::endl;
     std::cout << "'info' - view players information;" << std::endl;
@@ -471,6 +471,9 @@ int main()
     {
         move(players,quit);
     }
+
+    std::cout << std::endl << "Press any key...";
+    std::cin.get();
 
     return 1;
 }
