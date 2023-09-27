@@ -21,6 +21,8 @@ const unsigned int MAX_DAMAGE = 30;
 
 //Имя файла для сохранения данных
 const std::string FILE_NAME = "save.bin";
+//Флаг наличия сохраненной игры
+bool SAVE = false;
 
 struct coordinate
 {
@@ -181,13 +183,41 @@ void print_field (std::vector <character> &players)
 //Функция сохранения в файл
 void save_data (std::vector <character> &players)
 {
+    std::ofstream file(FILE_NAME, std::ios::binary);
+    if (!file.is_open())
+    {
+        std::cerr << "File " << FILE_NAME << " is not open!\n" << std::endl;
+        return;
+    }
+    
+    for (int i=0; i<COUNT_PLAYERS; i++)
+    {
+        file.write((char*)&players[i], sizeof(character));
+    }
+    //Устанавливаем флаг наличия сохраненной игры
+    SAVE = true;
 
+    file.close();
+    return;
 }
 
 //Функция загрузки из файла
 void load_data (std::vector <character> &players)
 {
-
+    std::ifstream file(FILE_NAME, std::ios::binary);
+    if (!file.is_open())
+    {
+        std::cerr << "File " << FILE_NAME << " is not open!\n" << std::endl;
+        return;
+    }
+    
+    for (int i=0; i<COUNT_PLAYERS; i++)
+    {
+        file.read((char*)&players[i], sizeof(character));
+    }
+    
+    file.close();
+    return;
 }
 
 //Функция вывода информации о игроках
@@ -233,7 +263,7 @@ void take_damage(int &health, int &armor, const int &damage, bool &alive)
         health += armor;
         armor = 0;
     }
-    if (health < 0) alive = false;
+    if (health <= 0) alive = false;
 }
 
 //Функция проверки поединка
@@ -306,7 +336,13 @@ void move (std::vector <character> &players, bool &quit)
         }
         else if (command == "load") 
         {
-            load_data(players);
+            if (SAVE) 
+            {
+                load_data(players);
+                print_field(players);
+            }
+            else std::cout << "No saves!" << std::endl;
+            
             error = true;
         }
         else if (command == "info") 
@@ -362,7 +398,6 @@ void move (std::vector <character> &players, bool &quit)
     
     //Отображение игрового поля
     print_field(players);
-    players_info(players);
 }
 
 int main()
@@ -377,10 +412,9 @@ int main()
     createFile();
 
     //Начальный экран
-    std::cout << "------ SKILLBOX RPG v1.1s ------" << std::endl << std::endl;
+    std::cout << "------ SKILLBOX RPG v1.0b ------" << std::endl << std::endl;
     std::cout << "Enter the command:" << std::endl << std::endl;
     std::cout << "'new' - start new game;" << std::endl;
-    std::cout << "'load' - load from file;" << std::endl;
     std::cout << "'quit' - terminate program execution." << std::endl << std::endl;
     
     //Загрузка данных игроков
@@ -391,7 +425,6 @@ int main()
         error = false;
         std::getline(std::cin,command);
         if (command == "new") players_init(players);
-        else if (command == "load") load_data(players);
         else if (command == "quit") 
         {
             std::cout << "--- Program completed ---" << std::endl;
