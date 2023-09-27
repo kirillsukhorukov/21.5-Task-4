@@ -21,8 +21,6 @@ const unsigned int MAX_DAMAGE = 30;
 
 //Имя файла для сохранения данных
 const std::string FILE_NAME = "save.bin";
-//Флаг наличия сохраненной игры
-bool SAVE = false;
 
 struct coordinate
 {
@@ -55,6 +53,8 @@ void createFile()
         file.close();
     }
     file.close();
+
+    return;
 }
 
 //Функция генерации случайного целого числа
@@ -125,6 +125,8 @@ void players_init(std::vector <character> &players)
         players[i].place.Y = random_num(0, FIELD_SIZE-1);
         players[i].team = false;
     }
+
+    return;
 }
 
 //Функция движения игрока
@@ -146,6 +148,8 @@ void movement (character &player, const int &direction)
     {
         if (player.place.Y+1 <FIELD_SIZE) player.place.Y++;
     }
+
+    return;
 }
 
 //Функция обновления игрового поля и его вывода на экран
@@ -165,7 +169,7 @@ void print_field (std::vector <character> &players)
     if (players[0].alive) field[players[0].place.Y][players[0].place.X] = 'P';
 
     //Вывод игрового поля
-    std::cout << std::endl << "\t\t\t\t\t\t\t\t\t\t----- BATTLEFIELD -----" << std::endl << std::endl;
+    std::cout << std::endl << "\t\t\t\t\t\t\t\t----- BATTLEFIELD -----" << std::endl << std::endl;
     
     std::cout << "\t";
     for (int x=0; x<FIELD_SIZE; x++) std::cout << x+1 << "\t"; 
@@ -192,12 +196,19 @@ void save_data (std::vector <character> &players)
     
     for (int i=0; i<COUNT_PLAYERS; i++)
     {
-        file.write((char*)&players[i], sizeof(character));
+        int len = players[i].name.length();
+        file.write((char*)&len, sizeof(len));
+        file.write(players[i].name.c_str(), len);
+        file.write((char*)&players[i].health, sizeof(int));
+        file.write((char*)&players[i].armor, sizeof(int));
+        file.write((char*)&players[i].damage, sizeof(int));
+        file.write((char*)&players[i].place, sizeof(coordinate));
+        file.write((char*)&players[i].alive, sizeof(bool));
+        file.write((char*)&players[i].team, sizeof(bool));
     }
-    //Устанавливаем флаг наличия сохраненной игры
-    SAVE = true;
 
     file.close();
+    
     return;
 }
 
@@ -213,10 +224,20 @@ void load_data (std::vector <character> &players)
     
     for (int i=0; i<COUNT_PLAYERS; i++)
     {
-        file.read((char*)&players[i], sizeof(character));
+        int len;
+        file.read((char*)&len, sizeof(int));
+        players[i].name.resize(len);
+        file.read((char*)players[i].name.c_str(), len);
+        file.read((char*)&players[i].health, sizeof(int));
+        file.read((char*)&players[i].armor, sizeof(int));
+        file.read((char*)&players[i].damage, sizeof(int));
+        file.read((char*)&players[i].place, sizeof(coordinate));
+        file.read((char*)&players[i].alive, sizeof(bool));
+        file.read((char*)&players[i].team, sizeof(bool));
     }
     
     file.close();
+    
     return;
 }
 
@@ -236,6 +257,8 @@ void players_info (std::vector <character> &players)
             << std::boolalpha << players[i].alive << std::endl;
     }
     std::cout << std::endl;
+
+    return;
 }
 
 //Функция вывода информации о командах
@@ -264,6 +287,8 @@ void take_damage(int &health, int &armor, const int &damage, bool &alive)
         armor = 0;
     }
     if (health <= 0) alive = false;
+
+    return;
 }
 
 //Функция проверки поединка
@@ -336,13 +361,8 @@ void move (std::vector <character> &players, bool &quit)
         }
         else if (command == "load") 
         {
-            if (SAVE) 
-            {
-                load_data(players);
-                print_field(players);
-            }
-            else std::cout << "No saves!" << std::endl;
-            
+            load_data(players);
+            print_field(players);
             error = true;
         }
         else if (command == "info") 
@@ -415,6 +435,7 @@ int main()
     std::cout << "------ SKILLBOX RPG v1.0b ------" << std::endl << std::endl;
     std::cout << "Enter the command:" << std::endl << std::endl;
     std::cout << "'new' - start new game;" << std::endl;
+    std::cout << "'load' - load from file;" << std::endl;
     std::cout << "'quit' - terminate program execution." << std::endl << std::endl;
     
     //Загрузка данных игроков
@@ -425,6 +446,7 @@ int main()
         error = false;
         std::getline(std::cin,command);
         if (command == "new") players_init(players);
+        else if (command == "load") load_data(players);
         else if (command == "quit") 
         {
             std::cout << "--- Program completed ---" << std::endl;
