@@ -19,6 +19,9 @@ const unsigned int MAX_ARMOR = 50;
 const unsigned int MIN_DAMAGE = 15;
 const unsigned int MAX_DAMAGE = 30;
 
+//Имя файла для сохранения данных
+const std::string FILE_NAME = "save.bin";
+
 struct coordinate
 {
     int X = 0;
@@ -35,6 +38,22 @@ struct character
     bool alive = true; //Флаг живой персонаж или нет
     bool team = true;  //Флаг принадлежности к команде (1 - игрок; 0 - команда противника)
 };
+
+void createFile()
+{
+    std::ifstream file(FILE_NAME, std::ios::binary);
+    if (!file.is_open())
+    {
+        std::ofstream file(FILE_NAME, std::ios::binary);
+        if (!file.is_open())
+        {
+            std::cerr << "Error create file\n";
+            exit(1);
+        }
+        file.close();
+    }
+    file.close();
+}
 
 //Функция генерации случайного целого числа
 int random_num(const int &min, const int &max)
@@ -354,8 +373,11 @@ int main()
     //Инициализация массива игроков
     std::vector <character> players(COUNT_PLAYERS);
 
+    //Создание или проверка наличия файла для сохранения данных
+    createFile();
+
     //Начальный экран
-    std::cout << "------ SKILLBOX RPG v1.1 ------" << std::endl << std::endl;
+    std::cout << "------ SKILLBOX RPG v1.1s ------" << std::endl << std::endl;
     std::cout << "Enter the command:" << std::endl << std::endl;
     std::cout << "'new' - start new game;" << std::endl;
     std::cout << "'load' - load from file;" << std::endl;
